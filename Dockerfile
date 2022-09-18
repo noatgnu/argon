@@ -14,7 +14,7 @@ RUN apt-get -y update
 RUN apt-get -y upgrade
 RUN apt-get -y install git
 
-RUN git clone https://github.com/noatgnu/argonController.git
+RUN git clone https://github.com/noatgnu/argon.git
 WORKDIR /usr/local/app/dQng
 RUN sed -i -r "s|localhost:8000|${API_HOST}|" ./src/environments/environment.prod.ts
 #RUN sed -i 's/localhost:8000/'"${API_HOST}"'/g' ./src/environments/environment.ts
