@@ -1,0 +1,64 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col">
+      <gojs-palette
+        #palette
+        [initPalette]='initPalette'
+        [nodeDataArray]='state.paletteNodeData'
+        [divClassName]='paletteDivClassName'>
+      </gojs-palette>
+    </div>
+    <div class="col-10" id="diagramStuff">
+      <gojs-diagram
+        #workflow
+        [initDiagram]='initDiagram'
+        [nodeDataArray]='state.diagramNodeData'
+        [linkDataArray]='state.diagramLinkData'
+        [modelData]='state.diagramModelData'
+        [skipsDiagramUpdate]='state.skipsDiagramUpdate'
+        (modelChange)='diagramModelChange($event)'
+        [divClassName]='diagramDivClassName'>
+      </gojs-diagram>
+      <ul #contextMenu id="contextMenu" class="menu">
+        <li id="toggleIncoming" class="menu-item">Toggle incoming links
+          <ul class="menu">
+            <li class="menu-item" id="toggleIncomingAll" (pointerdown)="cxcommand($event)">All</li>
+            <ng-container *ngIf="contextedObject.data">
+              <ng-container *ngIf="linkMap[contextedObject.data.key].incoming.length > 0">
+                <li class="menu-item" id="incoming{{i.key}}" style="display: block; max-width: 200px" (pointerdown)="cxcommand($event)" *ngFor="let i of linkMap[contextedObject.data.key].incoming; let ind = index">
+                  {{mapNode[i.name].data.name}}
+                </li>
+              </ng-container>
+            </ng-container>
+          </ul>
+        </li>
+        <li id="toggleOutgoing" class="menu-item" (pointerdown)="cxcommand($event)">Toggle outgoing links
+          <ul class="menu">
+            <li class="menu-item" id="toggleOutgoingAll" (pointerdown)="cxcommand($event)">All</li>
+            <ng-container *ngIf="contextedObject.data">
+              <ng-container *ngIf="linkMap[contextedObject.data.key].outgoing.length > 0">
+                <li class="menu-item" id="outgoing{{i.key}}" style="display: block; width: 200px" (pointerdown)="cxcommand($event)" *ngFor="let i of linkMap[contextedObject.data.key].outgoing; let ind = index">
+                  {{mapNode[i.name].data.name}}
+                </li>
+              </ng-container>
+            </ng-container>
+          </ul>
+        </li>
+<!--        <li id="cut" class="menu-item" onpointerdown="cxcommand(event)">Cut</li>-->
+<!--        <li id="copy" class="menu-item" onpointerdown="cxcommand(event)">Copy</li>-->
+<!--        <li id="paste" class="menu-item" onpointerdown="cxcommand(event)">Paste</li>-->
+<!--        <li id="delete" class="menu-item" onpointerdown="cxcommand(event)">Delete</li>-->
+<!--        <li id="color" class="menu-item">Color-->
+<!--          <ul class="menu">-->
+<!--            <li class="menu-item" style="background-color: #f38181;" onpointerdown="cxcommand(event, 'color')">Red</li>-->
+<!--            <li class="menu-item" style="background-color: #eaffd0;" onpointerdown="cxcommand(event, 'color')">Green</li>-->
+<!--            <li class="menu-item" style="background-color: #95e1d3;" onpointerdown="cxcommand(event, 'color')">Blue</li>-->
+<!--            <li class="menu-item" style="background-color: #fce38a;" onpointerdown="cxcommand(event, 'color')">Yellow</li>-->
+<!--          </ul>-->
+<!--        </li>-->
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="container"><button class="btn btn-primary" (click)="submitData()">Submit Data</button></div>
