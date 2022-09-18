@@ -3,7 +3,7 @@ LABEL maintainer="tphung@somoch.com"
 
 ARG API_HOST=localhost:8000
 LABEL \
-      org.label-schema.name="dQng" \
+      org.label-schema.name="argon" \
       org.label-schema.description="Docker container for Argon Controller" \
       org.label-schema.version="$DOCKER_IMAGE_VERSION" \
       org.label-schema.vcs-url="https://github.com/noatgnu/argon" \
@@ -15,7 +15,7 @@ RUN apt-get -y upgrade
 RUN apt-get -y install git
 
 RUN git clone https://github.com/noatgnu/argon.git
-WORKDIR /usr/local/app/dQng
+WORKDIR /usr/local/app/argon
 RUN sed -i -r "s|localhost:8000|${API_HOST}|" ./src/environments/environment.prod.ts
 #RUN sed -i 's/localhost:8000/'"${API_HOST}"'/g' ./src/environments/environment.ts
 RUN npm -g config set user root
@@ -24,6 +24,6 @@ RUN npm install
 RUN node_modules/.bin/ng build
 FROM nginx:latest
 
-COPY --from=0 /usr/local/app/dQng/dist /usr/share/nginx/html
+COPY --from=0 /usr/local/app/argon/dist /usr/share/argon/html
 
 EXPOSE 80
