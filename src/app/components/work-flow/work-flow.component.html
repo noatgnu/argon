@@ -1,5 +1,8 @@
 <div class="container-fluid">
-  <div class="row">
+  <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+    <button class="btn btn-sm btn-primary" (click)="submitData()">Submit Schematics</button>
+  </div>
+  <div class="row mt-2">
     <div class="col">
       <gojs-palette
         #palette
@@ -61,4 +64,4 @@
   </div>
 </div>
 
-<div class="container"><button class="btn btn-primary" (click)="submitData()">Submit Data</button></div>
+<app-dashboard></app-dashboard>

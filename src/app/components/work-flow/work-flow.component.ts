@@ -15,7 +15,7 @@ import {Subject} from "rxjs";
 import {AnimationServiceService} from "../services/animation-service.service";
 import {DiagramEvent, GraphObject} from "gojs";
 import produce from "immer";
-import {WebService} from "../../services/web.service";
+import {WebService} from "../services/web.service";
 
 @Component({
   selector: 'app-work-flow',

@@ -9,6 +9,7 @@ import { NavBarComponent } from './components/nav-bar/nav-bar.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { TestComponent } from './components/test/test.component';
 import {HttpClientModule} from "@angular/common/http";
+import { FlowRatesComponent } from './components/dashboard/flow-rates/flow-rates.component';
 
 @NgModule({
   declarations: [
@@ -16,7 +17,8 @@ import {HttpClientModule} from "@angular/common/http";
     WorkFlowComponent,
     NavBarComponent,
     DashboardComponent,
-    TestComponent
+    TestComponent,
+    FlowRatesComponent
   ],
     imports: [
         BrowserModule,
