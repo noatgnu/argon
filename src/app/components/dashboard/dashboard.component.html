@@ -1,14 +1,9 @@
 <div class="container-fluid">
-  <div class="row">
-    <div class="col">
-      <app-flow-rates [divName]="'test1'"></app-flow-rates>
+  <div class="row" *ngIf="data.enabledLink.length > 0">
+    <div class="col-6" *ngFor="let l of data.enabledLink">
+      <app-flow-rates [linkID]="l"></app-flow-rates>
     </div>
-    <div class="col">
-      <app-flow-rates [divName]="'test2'"></app-flow-rates>
-    </div>
-    <div class="col">
-      <app-flow-rates [divName]="'test3'"></app-flow-rates>
-    </div>
+
   </div>
 
 </div>

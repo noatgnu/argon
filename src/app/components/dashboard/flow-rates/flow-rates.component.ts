@@ -5,19 +5,32 @@ import am5themes_Animated from '@amcharts/amcharts5/themes/Animated';
 import {isPlatformBrowser} from "@angular/common";
 import {Subscription} from "rxjs";
 import {UtilitiesService} from "../../services/utilities.service";
+import {DataService} from "../../services/data.service";
+import {TimeSeriesData} from "../../../classes/time-series-data";
 @Component({
   selector: 'app-flow-rates',
   templateUrl: './flow-rates.component.html',
   styleUrls: ['./flow-rates.component.css']
 })
 export class FlowRatesComponent implements OnInit, AfterViewInit, OnDestroy {
-  @Input() divName: string = ""
+  divName: string = ""
+  private _linkID: string = ""
+
+  @Input() set linkID(value: string) {
+    this._linkID = value
+    this.divName = "div" + this._linkID
+    this.data.linkSubject[this._linkID].asObservable().subscribe((data: TimeSeriesData) => {
+      this.addData(data)
+    })
+  }
   private root!: am5.Root;
 
   randomData!: any
   series1!: am5xy.LineSeries
   xAxis!: am5xy.DateAxis<am5xy.AxisRenderer>
-  constructor(@Inject(PLATFORM_ID) private platformId: Object, private zone: NgZone, private utilities: UtilitiesService) { }
+  constructor(@Inject(PLATFORM_ID) private platformId: Object, private zone: NgZone, private utilities: UtilitiesService, private data: DataService) {
+
+  }
 
   browserOnly(f: () => void) {
     if (isPlatformBrowser(this.platformId)) {
@@ -29,12 +42,21 @@ export class FlowRatesComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     this.randomData = setInterval((n: number)=> {
-      console.log(n)
-      if (this.series1) {
+      const randomNumber = this.utilities.randomIntFromInterval(10, 50)
+      const newTime = am5.time.add(new Date(), "second", 1).getTime()
+      this.data.linkSubject[this._linkID].next(new TimeSeriesData(randomNumber, newTime))
+    }, 5000)
+
+  }
+
+  addData(data?: TimeSeriesData) {
+    if (this.series1) {
+      if (data) {
         const lastValue = this.series1.dataItems[this.series1.dataItems.length -1].get("valueY")
-        const randomNumber = this.utilities.randomIntFromInterval(10, 50)
-        console.log(randomNumber)
-        const newTime = am5.time.add(new Date(), "second", 1).getTime()
+        //const randomNumber = this.utilities.randomIntFromInterval(10, 50)
+        //const newTime = am5.time.add(new Date(), "second", 1).getTime()
+        const randomNumber = data.value
+        const newTime = data.time
         if (this.series1.data.length >= 60) {
           this.series1.data.removeIndex(0)
           this.series1.data.push({
@@ -71,8 +93,7 @@ export class FlowRatesComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
 
-    }, 1000)
-
+    }
   }
 
   ngAfterViewInit() {
@@ -129,6 +150,10 @@ export class FlowRatesComponent implements OnInit, AfterViewInit, OnDestroy {
           yAxis: yAxis,
           valueYField: "value",
           valueXField: "date",
+          tooltip: am5.Tooltip.new(root, {
+            pointerOrientation: "horizontal",
+            labelText: "{valueY}"
+          }),
           connect: true
         })
       );

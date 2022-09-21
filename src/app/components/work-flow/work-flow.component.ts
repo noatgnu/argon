@@ -3,7 +3,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component, ElementRef,
-  EventEmitter,
+  EventEmitter, OnDestroy,
   OnInit,
   Output,
   ViewChild,
@@ -16,6 +16,8 @@ import {AnimationServiceService} from "../services/animation-service.service";
 import {DiagramEvent, GraphObject} from "gojs";
 import produce from "immer";
 import {WebService} from "../services/web.service";
+import {DataService} from "../services/data.service";
+import {TimeSeriesData} from "../../classes/time-series-data";
 
 @Component({
   selector: 'app-work-flow',
@@ -23,7 +25,7 @@ import {WebService} from "../services/web.service";
   styleUrls: ['./work-flow.component.css'],
   encapsulation: ViewEncapsulation.Emulated
 })
-export class WorkFlowComponent implements OnInit, AfterViewInit, AfterContentInit {
+export class WorkFlowComponent implements OnInit, AfterViewInit, AfterContentInit, OnDestroy {
   @ViewChild('workflow', { static: true }) workflow: DiagramComponent | undefined;
   @ViewChild('palette', { static: true }) palette: PaletteComponent | undefined;
   @Output() diagram: EventEmitter<any> = new EventEmitter<any>()
@@ -32,6 +34,7 @@ export class WorkFlowComponent implements OnInit, AfterViewInit, AfterContentIni
   factory = go.GraphObject.make;
   linkMap: any = {}
   mapNode: any = {}
+  linkDataSubscription: any = {}
   hideCX() {
     if (this.workflow?.diagram.currentTool instanceof go.ContextMenuTool) {
       this.workflow?.diagram.currentTool.doCancel()
@@ -121,14 +124,14 @@ export class WorkFlowComponent implements OnInit, AfterViewInit, AfterContentIni
   ]
 
   diagramLinkData = [
-    {key: -1, from: "Chemical1", to: "Valve1", status: false},
-    {key: -2, from: "Chemical2", to: "Valve1", status: false},
-    {key: -3, from: "Chemical3", to: "Valve1", status: false},
-    {key: -4, from: "Chemical4", to: "Valve1", status: false},
-    {key: -5, from: "Chemical5", to: "Valve1", status: false},
-    {key: -6, from: "Chemical6", to: "Valve1", status: false},
-    {key: -7, from: "Chemical7", to: "Valve1", status: false},
-    {key: -8, from: "Chemical8", to: "Valve1", status: false}
+    {key: -1, from: "Chemical1", to: "Valve1", status: false, text: ""},
+    {key: -2, from: "Chemical2", to: "Valve1", status: false, text: ""},
+    {key: -3, from: "Chemical3", to: "Valve1", status: false, text: ""},
+    {key: -4, from: "Chemical4", to: "Valve1", status: false, text: ""},
+    {key: -5, from: "Chemical5", to: "Valve1", status: false, text: ""},
+    {key: -6, from: "Chemical6", to: "Valve1", status: false, text: ""},
+    {key: -7, from: "Chemical7", to: "Valve1", status: false, text: ""},
+    {key: -8, from: "Chemical8", to: "Valve1", status: false, text: ""}
   ]
 
   paletteNodeData = [
@@ -216,7 +219,7 @@ export class WorkFlowComponent implements OnInit, AfterViewInit, AfterContentIni
     }
   }
 
-  constructor(private cdr: ChangeDetectorRef, private animationSevice: AnimationServiceService, private web: WebService) {
+  constructor(private cdr: ChangeDetectorRef, private animationSevice: AnimationServiceService, private web: WebService, private data: DataService) {
     this.finishedTrigger.asObservable().subscribe(trigger => {
       if (trigger) {
         console.log(trigger)
@@ -292,10 +295,17 @@ export class WorkFlowComponent implements OnInit, AfterViewInit, AfterContentIni
     dia.linkTemplate = factory(go.Link,
       {routing: go.Link.AvoidsNodes, curve: go.Link.JumpGap, corner: 10, reshapable: true, toShortLength: 7},
       new go.Binding("points").makeTwoWay(),
+
       factory(go.Shape, { isPanelMain: true, stroke: "black", strokeWidth: 7 }),
       factory(go.Shape, { isPanelMain: true, stroke: "gray", strokeWidth: 5 }),
       factory(go.Shape, { isPanelMain: true, stroke: "white", strokeWidth: 3, name: "PIPE", strokeDashArray: [10, 10] }),
-      factory(go.Shape, { toArrow: "Triangle", scale: 1.3, fill: "gray", stroke: null })
+      factory(go.Shape, { toArrow: "Triangle", scale: 1.3, fill: "gray", stroke: null }),
+      factory(go.Panel, "Auto",
+        factory(go.Shape, "RoundedRectangle", {fill: "lightgray"}),
+        factory(go.TextBlock, {font: "bold 10pt serif"}, new go.Binding("text", "text").makeTwoWay())
+        )
+
+
     )
 
     this.dia = dia
@@ -358,11 +368,20 @@ export class WorkFlowComponent implements OnInit, AfterViewInit, AfterContentIni
                 delete this.mapNode[n.data.key]
                 for (const l of this.linkMap[n.data.key].incoming) {
                   delete this.animations[l.key]
+                  if (this.linkDataSubscription[l.key]) {
+                    this.linkDataSubscription[l.key].unsubscribe()
+                    delete this.linkDataSubscription[l.key]
+                  }
                 }
                 for (const l of this.linkMap[n.data.key].outgoing) {
                   delete this.animations[l.key]
+                  if (this.linkDataSubscription[l.key]) {
+                    this.linkDataSubscription[l.key].unsubscribe()
+                    delete this.linkDataSubscription[l.key]
+                  }
                 }
                 delete this.linkMap[n.data.key]
+
               }
               console.log(n.data)
             })
@@ -421,6 +440,7 @@ export class WorkFlowComponent implements OnInit, AfterViewInit, AfterContentIni
               dia.nodes.each(node => {
                 this.mapNode[node.data.key] = node
               })
+
               completeInitial = true
             }
 
@@ -534,11 +554,41 @@ export class WorkFlowComponent implements OnInit, AfterViewInit, AfterContentIni
 
   submitData() {
     if (this.workflow) {
+      const enabledLink: string[] = []
+      this.workflow.diagram.links.each(link => {
+        let key = ""
+        console.log(link.data)
+        if (link.key) {
+          if (typeof link.key === "number") {
+            key = link.key.toString()
+          } else {
+            key = link.key
+          }
+        }
+        if (link.data.status) {
+          enabledLink.push(key)
+          if (!this.data.linkSubject[key]) {
+            this.data.linkSubject[key] = new Subject<TimeSeriesData>()
+            this.linkDataSubscription[key] = this.data.linkSubject[key].subscribe((data: TimeSeriesData) => {
+              this.workflow?.diagram.model.setDataProperty(link.data, "text", data.value)
+              console.log(link.data)
+            })
+          }
+        }
+      })
+      this.data.enabledLink = enabledLink
+      console.log(this.data.enabledLink)
       this.web.submitData(this.workflow.diagram.model.toJson()).subscribe(d => {
         console.log(d)
       }, err => {
         alert("Cannot send data to backend")
       })
+    }
+  }
+
+  ngOnDestroy() {
+    for (const s in this.linkDataSubscription) {
+      this.linkDataSubscription[s].unsubscribe()
     }
   }
 }
