@@ -41,11 +41,11 @@ export class FlowRatesComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.randomData = setInterval((n: number)=> {
-      const randomNumber = this.utilities.randomIntFromInterval(10, 50)
-      const newTime = am5.time.add(new Date(), "second", 1).getTime()
-      this.data.linkSubject[this._linkID].next(new TimeSeriesData(randomNumber, newTime))
-    }, 5000)
+    // this.randomData = setInterval((n: number)=> {
+    //   const randomNumber = this.utilities.randomIntFromInterval(10, 50)
+    //   const newTime = am5.time.add(new Date(), "second", 1).getTime()
+    //   this.data.linkSubject[this._linkID].next(new TimeSeriesData(randomNumber, newTime))
+    // }, 5000)
 
   }
 

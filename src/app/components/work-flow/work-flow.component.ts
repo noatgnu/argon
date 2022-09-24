@@ -554,32 +554,34 @@ export class WorkFlowComponent implements OnInit, AfterViewInit, AfterContentIni
 
   submitData() {
     if (this.workflow) {
-      const enabledLink: string[] = []
-      this.workflow.diagram.links.each(link => {
-        let key = ""
-        console.log(link.data)
-        if (link.key) {
-          if (typeof link.key === "number") {
-            key = link.key.toString()
-          } else {
-            key = link.key
-          }
-        }
-        if (link.data.status) {
-          enabledLink.push(key)
-          if (!this.data.linkSubject[key]) {
-            this.data.linkSubject[key] = new Subject<TimeSeriesData>()
-            this.linkDataSubscription[key] = this.data.linkSubject[key].subscribe((data: TimeSeriesData) => {
-              this.workflow?.diagram.model.setDataProperty(link.data, "text", data.value)
-              console.log(link.data)
-            })
-          }
-        }
-      })
-      this.data.enabledLink = enabledLink
-      console.log(this.data.enabledLink)
       this.web.submitData(this.workflow.diagram.model.toJson()).subscribe(d => {
-        console.log(d)
+        if (this.workflow) {
+          const enabledLink: string[] = []
+          this.workflow.diagram.links.each(link => {
+            let key = ""
+            console.log(link.data)
+            if (link.key) {
+              if (typeof link.key === "number") {
+                key = link.key.toString()
+              } else {
+                key = link.key
+              }
+            }
+            if (link.data.status) {
+              enabledLink.push(key)
+              if (!this.data.linkSubject[key]) {
+                this.data.linkSubject[key] = new Subject<TimeSeriesData>()
+                this.linkDataSubscription[key] = this.data.linkSubject[key].subscribe((data: TimeSeriesData) => {
+                  this.workflow?.diagram.model.setDataProperty(link.data, "text", data.value)
+                  console.log(link.data)
+                })
+              }
+            }
+          })
+          this.data.enabledLink = enabledLink
+          this.data.stopWatchingLinks()
+          this.data.startWatchingLinks(this.data.enabledLink)
+        }
       }, err => {
         alert("Cannot send data to backend")
       })
