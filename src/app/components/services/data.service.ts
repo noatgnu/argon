@@ -18,7 +18,8 @@ export class DataService {
           d.date = new Date(d.date)
         })
         for (const i of data) {
-          this.linkSubject[i.linkID].next(new TimeSeriesData(i.data, i.date.getTime()))
+          console.log(i.date)
+          this.linkSubject[i.linkID].next(new TimeSeriesData(i.data, i.date))
         }
       })
     }, interval)

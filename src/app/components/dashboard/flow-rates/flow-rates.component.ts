@@ -54,9 +54,11 @@ export class FlowRatesComponent implements OnInit, AfterViewInit, OnDestroy {
       if (data) {
         const lastValue = this.series1.dataItems[this.series1.dataItems.length -1].get("valueY")
         //const randomNumber = this.utilities.randomIntFromInterval(10, 50)
-        //const newTime = am5.time.add(new Date(), "second", 1).getTime()
+        //const newTime = am5.time.add(data.time, "second", 1).getTime()
+        console.log(this.series1.dataItems[this.series1.dataItems.length -1].get("valueX"))
         const randomNumber = data.value
-        const newTime = data.time
+        const newTime = data.time.getTime()
+        console.log(newTime)
         if (this.series1.data.length >= 60) {
           this.series1.data.removeIndex(0)
           this.series1.data.push({
@@ -111,18 +113,11 @@ export class FlowRatesComponent implements OnInit, AfterViewInit, OnDestroy {
       );
 
       // Define data
-      let data = [
+      console.log(new Date())
+      let data: any[] = [
         {
           date: new Date().getTime(),
           value: 10
-        },
-        {
-          date: new Date().getTime(),
-          value: 20
-        },
-        {
-          date: new Date().getTime(),
-          value: 40
         }
       ];
 
